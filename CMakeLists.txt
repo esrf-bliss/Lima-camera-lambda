@@ -126,7 +126,6 @@ endif()
 
 # Binding code for python
 if(LIMA_ENABLE_PYTHON)
-  include(LimaTools)
   limatools_run_sip_for_camera(lambda)
 endif()
 
@@ -177,5 +176,5 @@ endif()
 ## Tests
 if(CAMERA_ENABLE_TESTS)
     enable_testing()
-    add_subdirectory(test)
+    #add_subdirectory(test)
 endif()

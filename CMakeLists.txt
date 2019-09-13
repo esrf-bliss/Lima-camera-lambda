@@ -82,7 +82,7 @@ if (CAMERA_MASTER_PROJECT)
   endif()
 endif()
 
-file(GLOB_RECURSE SIMU_INCS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
+file(GLOB_RECURSE LAMBDA_INCS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
 # Library definition
 add_library(lambda SHARED
@@ -90,7 +90,7 @@ add_library(lambda SHARED
   src/LambdaInterface.cpp
   src/LambdaSyncCtrlObj.cpp
   src/LambdaDetInfoCtrlObj.cpp
-  ${SIMU_INCS}
+  ${LAMBDA_INCS}
 )
 
 # Generate export macros

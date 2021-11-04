@@ -119,7 +119,7 @@ void Camera::CameraThread::execStartAcq()
 					auto ptrch_data = reinterpret_cast<const uint8_t*>(frame->data());
 					nDataLength = frame->size();
 					// process frame data, i.e. copy using memcpy(<dest>, frame_data, frame_size);
-					m_cam->receiver->release(acq_frame_nb);
+					m_cam->receiver->release(frame);
 				}
 			} else {  //decoded image,without pre-compression
 				m_nSizeX = m_cam->receiver->frameWidth();
@@ -154,7 +154,7 @@ void Camera::CameraThread::execStartAcq()
 								memcpy((short *)ptr, (short *)m_cam->m_sframe, frame_dim.getMemSize()); //we need a nb of BYTES .
 								not_correct_frame = 0;
 							}
-							m_cam->receiver->release(lambda_frame_nb);
+							m_cam->receiver->release(frame);
 						}		
 					}
 				} else if(m_nDataType == 2){ // int
@@ -171,7 +171,7 @@ void Camera::CameraThread::execStartAcq()
 						m_cam->m_frame = (int*) ptrn_data;
 						void *ptr = buffer_mgr.getFrameBufferPtr(acq_frame_nb);
 						memcpy((int *)ptr, (int *)m_cam->m_frame, frame_dim.getMemSize()); //we need a nb of BYTES .
-						m_cam->receiver->release(lambda_frame_nb);
+						m_cam->receiver->release(frame);
 					}
 				}
 
@@ -565,5 +565,5 @@ HwBufferCtrlObj* Camera::getBufferCtrlObj() {
 }
 
 void Camera::getDistortionCorrection(bool &is_on){
-  is_on = (receiver->interpolation() == Interpolation::ON);
+  is_on = detector->interpolationEnabled();
 }

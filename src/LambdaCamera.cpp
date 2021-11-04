@@ -219,12 +219,20 @@ m_bufferCtrlObj()
 	m_bBuildInCompressor = false;
 
 	libxsp_system = createSystem(config_path);
+	if (libxsp_system == nullptr) {
+		THROW_HW_ERROR(Error) << "No system created. Aborting ...";
+	}
+	try {
+	libxsp_system->connect();
+	libxsp_system->initialize();
+	}
+	catch (const RuntimeError& e){
+		THROW_HW_ERROR(Error) << "Cannot initialize detector connection, reason: \n" << e.what();
+	}
 	detector = std::dynamic_pointer_cast<lambda::Detector>(
 							       libxsp_system->detector("lambda")
 							       );
 	receiver = libxsp_system->receiver("lambda/1");
-	libxsp_system->connect();
-	libxsp_system->initialize();
 	
 	int m_nSizeX;
 	int m_nSizeY;

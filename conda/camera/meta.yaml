@@ -20,7 +20,7 @@ requirements:
     - python {{ python }}
     - sip 4.19.8              # For compatibility with pyqt 5.9.2
     - lima-core >1.9.2
-    - xspectrum-sdk >=2.0.2
+    - xspectrum-sdk >=2.0.2*
   build:
     - git
     - cmake

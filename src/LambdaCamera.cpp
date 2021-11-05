@@ -467,7 +467,11 @@ void Camera::getEnergyThreshold(double& energy)
 	DEB_MEMBER_FUNCT();
 	// up to 8 thresholds can be set, we only use the first one
 	auto thresholds = detector->thresholds();
-	energy = thresholds[0];
+	// at cold start we get an empty double vector
+	if (thresholds.size() != 0)
+		energy = thresholds[0];	
+	else
+		energy = -1; 
 	DEB_RETURN() << DEB_VAR1(energy);
 }
 

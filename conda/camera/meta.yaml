@@ -21,8 +21,8 @@ requirements:
     - sip 4.19.8              # For compatibility with pyqt 5.9.2
     - lima-core
     - xspectrum-sdk 2.0.2
+    - boost-cpp=1.74.0=h6cacc03_7
   build:
-    - git
     - cmake
     - make
     - {{ compiler('cxx') }}
@@ -31,6 +31,7 @@ requirements:
     - sip >=4.19.4, <=4.19.8  # For compatibility with pyqt 5.9.2
     - {{ pin_compatible('lima-core', max_pin='x.x') }}
     - xspectrum-sdk 2.0.2
+    - boost-cpp=1.74.0=h6cacc03_7
 
 test:
   imports:

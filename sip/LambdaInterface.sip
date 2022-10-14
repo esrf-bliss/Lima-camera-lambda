@@ -18,12 +18,7 @@ namespace Lambda
 
     virtual int getNbHwAcquiredFrames();
 
+  private:
+    Interface(const Lambda::Interface&);
   };
-
-	
-
-   
-
-
-
 };

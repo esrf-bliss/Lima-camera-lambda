@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h> 
 #include <netdb.h>
+#include <unistd.h>
 
 #include "lima/Exceptions.h"
 
@@ -368,6 +369,11 @@ void Camera::startAcq()
 
 	m_thread.sendCmd(CameraThread::StartAcq);
 	m_thread.waitNotStatus(CameraThread::Ready);
+
+	// unfortunately the sdk starAcquisition() command cannot guaranty the camera is
+	// ready to receive the first trigger. here we need to wait
+	if (m_trigger_mode == ExtTrigSingle || m_trigger_mode == ExtTrigMult)
+	  sleep(0.2);
 }
 
 //---------------------------------------------------------------------------------------
@@ -444,7 +450,7 @@ void Camera::setTrigMode(TrigMode  mode)
 		THROW_HW_ERROR(Error) << "Cannot change the Trigger Mode of the camera, this mode is not managed !";
 		break;
 	}
-	
+	m_trigger_mode = mode;
 	
 }
 

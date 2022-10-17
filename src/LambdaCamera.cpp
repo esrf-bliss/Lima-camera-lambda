@@ -373,7 +373,7 @@ void Camera::startAcq()
 	// unfortunately the sdk starAcquisition() command cannot guaranty the camera is
 	// ready to receive the first trigger. here we need to wait
 	if (m_trigger_mode == ExtTrigSingle || m_trigger_mode == ExtTrigMult)
-	  sleep(0.4);
+	  sleep(0.5);
 }
 
 //---------------------------------------------------------------------------------------

@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h> 
 #include <netdb.h>
+#include <unistd.h>
 
 #include "lima/Exceptions.h"
 
@@ -81,7 +82,6 @@ void Camera::CameraThread::execStartAcq()
 	
   DEB_MEMBER_FUNCT();
   DEB_TRACE() << "CameraThread::execStartAcq - BEGIN";
-  setStatus(Exposure);
   
   StdBufferCbMgr& buffer_mgr = m_cam->m_bufferCtrlObj.getBuffer();
   buffer_mgr.setStartTimestamp(Timestamp::now());
@@ -93,6 +93,7 @@ void Camera::CameraThread::execStartAcq()
     
   // start acquisition
   m_cam->detector->startAcquisition();
+  setStatus(Exposure);
   
   m_cam->m_acq_frame_nb = 0;
   acq_frame_nb = 0;
@@ -368,6 +369,11 @@ void Camera::startAcq()
 
 	m_thread.sendCmd(CameraThread::StartAcq);
 	m_thread.waitNotStatus(CameraThread::Ready);
+
+	// unfortunately the sdk starAcquisition() command cannot guaranty the camera is
+	// ready to receive the first trigger. here we need to wait
+	if (m_trigger_mode == ExtTrigSingle || m_trigger_mode == ExtTrigMult)
+	  usleep(150*1e3);
 }
 
 //---------------------------------------------------------------------------------------
@@ -431,7 +437,7 @@ void Camera::setTrigMode(TrigMode  mode)
 	  detector->setTriggerMode(lambda::TrigMode::SOFTWARE); // Internal trigger
 	  break;
 	case ExtTrigSingle:
-	  detector->setTriggerMode(lambda::TrigMode::EXT_SEQUENCE); // External trigger. Once dectector receives trigger, it takes predefined image numbers.
+	  detector->setTriggerMode(lambda::TrigMode::EXT_SEQUENCE); // External trigger. Once detector receives trigger, it takes predefined image numbers.
 	  break;
 	case ExtTrigMult:
 	  detector->setTriggerMode(lambda::TrigMode::EXT_FRAMES); // External trigger. Each trigger pulse takes one image.
@@ -444,7 +450,7 @@ void Camera::setTrigMode(TrigMode  mode)
 		THROW_HW_ERROR(Error) << "Cannot change the Trigger Mode of the camera, this mode is not managed !";
 		break;
 	}
-	
+	m_trigger_mode = mode;
 	
 }
 

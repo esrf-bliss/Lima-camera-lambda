@@ -29,7 +29,7 @@ requirements:
   run:
     - python
     - {{ pin_compatible('sip', min_pin='x.x.x', max_pin='x') }} 
-    - {{ pin_compatible('lima-core', max_pin='x.x', max_pin='x.x') }}
+    - {{ pin_compatible('lima-core', min_pin='x.x', max_pin='x.x') }}
     - xspectrum-sdk 2.0.2
     - boost-cpp=1.74.0=h6cacc03_7
 

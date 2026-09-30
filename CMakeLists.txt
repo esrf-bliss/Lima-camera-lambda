@@ -1,7 +1,7 @@
 ###########################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-#  Copyright (C) : 2009-2019
+#  Copyright (C) : 2009-2026
 #  European Synchrotron Radiation Facility
 #  CS40220 38043 Grenoble Cedex 9
 #  FRANCE
@@ -22,7 +22,7 @@
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 4.0)
 
 project(lambda)
 
@@ -129,7 +129,7 @@ endif()
 
 # Binding code for python
 if(LIMA_ENABLE_PYTHON)
-  limatools_run_sip_for_camera(lambda)
+  limatools_run_sip_for_camera(lambda 2)
 endif()
 
 # Generate and install package config file and version
@@ -169,7 +169,7 @@ install(
 if(LIMA_ENABLE_PYTHON)
   install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/
-    DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Lambda"
+    DESTINATION "$<PATH:CMAKE_PATH,NORMALIZE,${Python3_SITEARCH}/lima/lambda>"
     )
   if (LIMA_ENABLE_PYTANGO_SERVER)
     add_subdirectory(tango)

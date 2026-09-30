@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2011
+# Copyright (C) : 2009-2026
 # European Synchrotron Radiation Facility
 # BP 220, Grenoble 38043
 # FRANCE
@@ -40,20 +40,20 @@
 #=============================================================================
 #
 import PyTango
-from Lima import Core
-from Lima import Lambda as LambdaAcq
-from Lima.Server import AttrHelper
+from lima import core
+from lima.limalambda import Lambda as LambdaAcq
+from lima.server import AttrHelper
 
-class Lambda(PyTango.Device_4Impl):
+class Lambda(PyTango.LatestDeviceImpl):
 
-    Core.DEB_CLASS(Core.DebModApplication, 'LimaCCDs')
+    core.DEB_CLASS(core.DebModule.DebModApplication, 'LimaCCDs')
 
 
 #------------------------------------------------------------------
 #    Device constructor
 #------------------------------------------------------------------
     def __init__(self,*args) :
-        PyTango.Device_4Impl.__init__(self,*args)
+        PyTango.LatestDeviceImpl.__init__(self,*args)
         #self.__Attribute2FunctionBase = {'distortion_correction': 'DistortionCorrection',
         #                                 }
         
@@ -68,12 +68,12 @@ class Lambda(PyTango.Device_4Impl):
 #------------------------------------------------------------------
 #    Device initialization
 #------------------------------------------------------------------
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def init_device(self):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def getAttrStringValueList(self, attr_name):
         return AttrHelper.get_attr_string_value_list(self, attr_name)
 
@@ -131,7 +131,7 @@ def get_control(config_path = "",**keys) :
     if _LambdaCam is None:
         _LambdaCam = LambdaAcq.Camera(config_path)
         _LambdaInterface = LambdaAcq.Interface(_LambdaCam)
-    return Core.CtControl(_LambdaInterface)
+    return core.CtControl(_LambdaInterface)
 
 def get_tango_specific_class_n_device():
     return LambdaClass,Lambda

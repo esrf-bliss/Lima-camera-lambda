@@ -39,99 +39,126 @@
 #         (c) - Bliss - ESRF
 #=============================================================================
 #
-import PyTango
+from tango import AttrWriteType, DevState
+from tango.server import Device, attribute, command, device_property
+
 from lima import core
 from lima.limalambda import Lambda as LambdaAcq
 from lima.server import AttrHelper
 
-class Lambda(PyTango.LatestDeviceImpl):
+
+class Lambda(Device):
 
     core.DEB_CLASS(core.DebModule.DebModApplication, 'LimaCCDs')
 
+    # ------------------------------------------------------------------
+    #    Static properties
+    # ------------------------------------------------------------------
+    _LambdaCam = None
+    """Reference to Lima lambda camera binding"""
+    _LambdaInterface = None
+    """Reference to Lima lambda interface binding"""
 
-#------------------------------------------------------------------
-#    Device constructor
-#------------------------------------------------------------------
-    def __init__(self,*args) :
-        PyTango.LatestDeviceImpl.__init__(self,*args)
-        #self.__Attribute2FunctionBase = {'distortion_correction': 'DistortionCorrection',
-        #                                 }
-        
-        self.init_device()
+    # ------------------------------------------------------------------
+    #    Device properties
+    # ------------------------------------------------------------------
+    config_path = device_property(
+        dtype=str,
+        doc="Path the manufacturer configuration file of the detector, "
+        "should be something like: /opt/xsp/config",
+    )
 
-#------------------------------------------------------------------
-#    Device destructor
-#------------------------------------------------------------------
-    def delete_device(self):
-        pass
-
-#------------------------------------------------------------------
-#    Device initialization
-#------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    #    Device initialization
+    # ------------------------------------------------------------------
     @core.DEB_MEMBER_FUNCT
     def init_device(self):
-        self.set_state(PyTango.DevState.ON)
-        self.get_device_properties(self.get_device_class())
+        Device.init_device(self)
+        self.set_state(DevState.ON)
 
+    # ------------------------------------------------------------------
+    #    Commands
+    # ------------------------------------------------------------------
+    @command(dtype_in=str, dtype_out=(str,))
     @core.DEB_MEMBER_FUNCT
     def getAttrStringValueList(self, attr_name):
         return AttrHelper.get_attr_string_value_list(self, attr_name)
 
-    def __getattr__(self,name) :
-        return AttrHelper.get_attr_4u(self, name, _LambdaCam)
+    # ------------------------------------------------------------------
+    #    Attributes fully dispatched by naming convention
+    # ------------------------------------------------------------------
+    _distortion_correction_fget, _ = AttrHelper.make_fget_fset(
+        "distortion_correction", lambda self: self._LambdaCam
+    )
+    distortion_correction = attribute(
+        dtype=bool,
+        access=AttrWriteType.READ,
+        doc="True if the distortion correction is active - only relevant with "
+        "detectors equipped with the latest hardware/firmware (since mid-2020)",
+        fget=_distortion_correction_fget,
+    )
 
-class LambdaClass(PyTango.DeviceClass):
+    _temperature_fget, _ = AttrHelper.make_fget_fset("temperature", lambda self: self._LambdaCam)
+    temperature = attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        unit="C",
+        doc="The detector temperature - only relevant with detectors equipped "
+        "with the latest hardware/firmware (since mid-2020)",
+        fget=_temperature_fget,
+    )
 
-    class_property_list = {}
+    _humidity_fget, _ = AttrHelper.make_fget_fset("humidity", lambda self: self._LambdaCam)
+    humidity = attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        unit="%",
+        doc="The detector humidity - only relevant with detectors equipped "
+        "with the latest hardware/firmware (since mid-2020)",
+        fget=_humidity_fget,
+    )
 
-    device_property_list = {
-        'config_path':
-        [PyTango.DevString,
-         "Path of the configuration file",[]],
-        }
+    _energy_threshold_fget, _energy_threshold_fset = AttrHelper.make_fget_fset(
+        "energy_threshold", lambda self: self._LambdaCam
+    )
+    energy_threshold = attribute(
+        dtype=float,
+        access=AttrWriteType.READ_WRITE,
+        unit="KeV",
+        doc="The energy threshold",
+        fget=_energy_threshold_fget,
+        fset=_energy_threshold_fset,
+    )
 
-    cmd_list = {}
+    _high_voltage_fget, _high_voltage_fset = AttrHelper.make_fget_fset(
+        "high_voltage", lambda self: self._LambdaCam
+    )
+    high_voltage = attribute(
+        dtype=float,
+        access=AttrWriteType.READ_WRITE,
+        doc="The high voltage, relevant only for the CdTe model",
+        fget=_high_voltage_fget,
+        fset=_high_voltage_fset,
+    )
 
-    attr_list = {
-        'distortion_correction':
-        [[PyTango.DevBoolean,
-          PyTango.SCALAR,
-          PyTango.READ]],
-        'temperature':
-        [[PyTango.DevDouble,
-          PyTango.SCALAR,
-          PyTango.READ]],
-        'humidity':
-        [[PyTango.DevDouble,
-          PyTango.SCALAR,
-          PyTango.READ]],
-        'energy_threshold':
-        [[PyTango.DevDouble,
-          PyTango.SCALAR,
-          PyTango.READ_WRITE]],        
-        'high_voltage':
-        [[PyTango.DevDouble,
-          PyTango.SCALAR,
-          PyTango.READ_WRITE]],        
-        }
-
-    def __init__(self,name) :
-        PyTango.DeviceClass.__init__(self,name)
-        self.set_type(name)
 
 #----------------------------------------------------------------------------
 # Plugins
 #----------------------------------------------------------------------------
-_LambdaCam = None
-_LambdaInterface = None
 
-def get_control(config_path = "",**keys) :
-    global _LambdaCam
-    global _LambdaInterface
-    if _LambdaCam is None:
-        _LambdaCam = LambdaAcq.Camera(config_path)
-        _LambdaInterface = LambdaAcq.Interface(_LambdaCam)
-    return core.CtControl(_LambdaInterface)
+def get_control(config_path="", _Lambda=Lambda, _Camera=LambdaAcq.Camera,
+                 _Interface=LambdaAcq.Interface, **keys):
+    camera = _Lambda._LambdaCam
+    interface = _Lambda._LambdaInterface
+
+    if camera is None:
+        camera = _Camera(config_path)
+        interface = _Interface(camera)
+        _Lambda._LambdaCam = camera
+        _Lambda._LambdaInterface = interface
+
+    return core.CtControl(interface)
+
 
 def get_tango_specific_class_n_device():
-    return LambdaClass,Lambda
+    return Lambda.TangoClassClass, Lambda
